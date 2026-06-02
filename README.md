@@ -143,3 +143,6 @@ TUI (REPL) 模式需要真实终端，无法直接通过 VS Code launch 启动�
 ## 许可证
 
 本项目仅供学习研究用途。Claude Code 的所有权利归 [Anthropic](https://www.anthropic.com/) 所有。
+
+插件：Bun for Visual Studio Code , https://www.kdocs.cn/l/cgZctN7gSblf
+

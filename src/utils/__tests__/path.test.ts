@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { resolve } from "path";
+import { normalize, resolve } from "path";
 import {
   containsPathTraversal,
   expandPath,
@@ -7,6 +7,9 @@ import {
   toRelativePath,
   getDirectoryForPath,
 } from "../path";
+
+// Build expected paths using path.normalize for platform-aware comparison
+const np = (p: string) => normalize(p);
 
 // ─── containsPathTraversal ──────────────────────────────────────────────
 
@@ -78,15 +81,17 @@ describe("expandPath", () => {
   });
 
   test("passes absolute paths through normalized", () => {
-    expect(expandPath("/usr/local/bin")).toBe("/usr/local/bin");
+    expect(expandPath("/usr/local/bin")).toBe(np("/usr/local/bin"));
   });
 
   test("resolves relative path against baseDir", () => {
-    expect(expandPath("src", "/project")).toBe("/project/src");
+    const result = expandPath("src", "/project");
+    // On Windows, resolve prepends the current drive to /project
+    expect(result.endsWith(np("project/src"))).toBe(true);
   });
 
   test("returns baseDir for empty string", () => {
-    expect(expandPath("", "/project")).toBe("/project");
+    expect(expandPath("", "/project")).toBe(np("/project"));
   });
 
   test("returns cwd-based path for empty string without baseDir", () => {

@@ -68,12 +68,17 @@ describe("stripLineNumberPrefix", () => {
 describe("normalizePathForComparison", () => {
   test("normalizes redundant separators", () => {
     const result = normalizePathForComparison("/a//b/c");
-    expect(result).toBe("/a/b/c");
+    // On Windows, path.normalize converts / to \ and lowercases
+    const expected = require("path").normalize("/a/b/c");
+    const isWin = process.platform === "win32";
+    expect(result).toBe(isWin ? expected.toLowerCase() : expected);
   });
 
   test("resolves dot segments", () => {
     const result = normalizePathForComparison("/a/./b/../c");
-    expect(result).toBe("/a/c");
+    const expected = require("path").normalize("/a/c");
+    const isWin = process.platform === "win32";
+    expect(result).toBe(isWin ? expected.toLowerCase() : expected);
   });
 });
 

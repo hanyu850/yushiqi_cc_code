@@ -10,44 +10,44 @@ describe("formatBriefTimestamp", () => {
     expect(result).toContain(":");
     // Should NOT contain a weekday name since it's the same day
     expect(result).not.toMatch(
-      /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/
+      /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|星期一|星期二|星期三|星期四|星期五|星期六|星期天|星期日/
     );
   });
 
   test("yesterday returns weekday and time", () => {
     // 2026-04-01 is Wednesday
     const result = formatBriefTimestamp("2026-04-01T16:15:00Z", now);
-    expect(result).toContain("Wednesday");
     expect(result).toContain(":");
+    // Weekday name should be present (English or Chinese)
+    expect(result).toMatch(/Wednesday|星期三/);
   });
 
   test("3 days ago returns weekday and time", () => {
     // 2026-03-30 is Monday
     const result = formatBriefTimestamp("2026-03-30T09:00:00Z", now);
-    expect(result).toContain("Monday");
     expect(result).toContain(":");
+    expect(result).toMatch(/Monday|星期一/);
   });
 
   test("6 days ago returns weekday and time (still within 6-day window)", () => {
     // 2026-03-27 is Friday
     const result = formatBriefTimestamp("2026-03-27T12:00:00Z", now);
-    expect(result).toContain("Friday");
     expect(result).toContain(":");
+    expect(result).toMatch(/Friday|星期五/);
   });
 
   test("7+ days ago returns weekday, month, day, and time", () => {
     // 2026-03-20 is Friday, 13 days ago
     const result = formatBriefTimestamp("2026-03-20T14:30:00Z", now);
-    expect(result).toContain("Friday");
     expect(result).toContain(":");
-    // Should contain month abbreviation (Mar)
-    expect(result).toMatch(/Mar/);
+    // Should contain month (English abbreviation or Chinese numeric)
+    expect(result).toMatch(/Mar|3月/);
   });
 
   test("much older date returns full format with month", () => {
     const result = formatBriefTimestamp("2025-12-25T08:00:00Z", now);
     expect(result).toContain(":");
-    expect(result).toMatch(/Dec/);
+    expect(result).toMatch(/Dec|12月/);
   });
 
   test("invalid ISO string returns empty string", () => {

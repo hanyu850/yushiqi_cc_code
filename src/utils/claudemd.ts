@@ -37,7 +37,6 @@ import {
   join,
   parse,
   relative,
-  sep,
 } from 'path'
 import picomatch from 'picomatch'
 import { logEvent } from 'src/services/analytics/index.js'
@@ -1441,11 +1440,12 @@ export function isMemoryFilePath(filePath: string): boolean {
   }
 
   // .md files in .claude/rules/ directories
-  if (
-    name.endsWith('.md') &&
-    filePath.includes(`${sep}.claude${sep}rules${sep}`)
-  ) {
-    return true
+  if (name.endsWith('.md')) {
+    // Normalize separators to handle both POSIX and Windows paths
+    const normalizedPath = filePath.replace(/\\/g, '/')
+    if (normalizedPath.includes('/.claude/rules/')) {
+      return true
+    }
   }
 
   return false
