@@ -441,5 +441,10 @@ export async function connectRemoteControl(
 ): Promise<RemoteControlHandle | null> {
   throw new Error('not implemented')
 }
-export type HookEvent = any;
-export type ExitReason = any;
+// Re-export HookEvent and ExitReason from the canonical schemas location.
+// These are used by types/hooks.ts and schemas/hooks.ts.
+// HOOK_EVENTS is a const array in coreSchemas.ts; HookEvent is its member type.
+export { HOOK_EVENTS } from './sdk/coreSchemas.js'
+export type HookEvent = (typeof HOOK_EVENTS)[number]
+export { EXIT_REASONS } from './sdk/coreSchemas.js'
+export type ExitReason = (typeof EXIT_REASONS)[number]
