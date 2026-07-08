@@ -4,11 +4,39 @@ export const PRODUCT_URL = 'https://claude.com/claude-code'
 // Set CCB_UNLOCK_ALL=1 to enable all features regardless of USER_TYPE
 // Set CCB_SKIP_AUTH=1 to bypass OAuth login (API key direct mode)
 // Set CCB_NO_TELEMETRY=1 to disable analytics/Sentry/GrowthBook
-// Set CCB_SIMPLE_PROMPT=1 to slash system prompt + tool count for non-caching models (千问 etc.)
+// CCB_SIMPLE_PROMPT: 不设置=自动判断, =1=强制瘦身, =0=强制完整
 export const CCB_UNLOCK_ALL = process.env.CCB_UNLOCK_ALL === '1'
 export const CCB_SKIP_AUTH = process.env.CCB_SKIP_AUTH === '1' || CCB_UNLOCK_ALL
 export const CCB_NO_TELEMETRY = process.env.CCB_NO_TELEMETRY === '1' || CCB_UNLOCK_ALL
-export const CCB_SIMPLE_PROMPT = process.env.CCB_SIMPLE_PROMPT === '1'
+
+// Auto-detect slim prompt: only enable for providers without prompt caching
+// DeepSeek / Anthropic firstParty → supports cache_control → full prompt
+// OpenAI-compatible (千问 etc.) → no cache_control → slim mode
+export let CCB_SIMPLE_PROMPT: boolean
+{
+  const explicit = process.env.CCB_SIMPLE_PROMPT
+  if (explicit === '1') {
+    CCB_SIMPLE_PROMPT = true
+  } else if (explicit === '0') {
+    CCB_SIMPLE_PROMPT = false
+  } else {
+    // Auto-detect from provider
+    const modelType = process.env.CLAUDE_CODE_MODEL_TYPE ||
+      (process.env.OPENAI_BASE_URL ? 'openai' : '') ||
+      (process.env.GEMINI_BASE_URL ? 'gemini' : '')
+    const useBedrock = process.env.CLAUDE_CODE_USE_BEDROCK === '1'
+    const useVertex = process.env.CLAUDE_CODE_USE_VERTEX === '1'
+    const baseUrl = process.env.ANTHROPIC_BASE_URL || ''
+
+    // DeepSeek base URL patterns support prompt caching
+    const isDeepSeek = baseUrl.includes('deepseek')
+    // Anthropic native or DeepSeek → caching supported → full prompt
+    const hasCacheSupport = !modelType && !useBedrock && !useVertex &&
+      (!baseUrl || isDeepSeek || baseUrl.includes('api.anthropic.com'))
+
+    CCB_SIMPLE_PROMPT = !hasCacheSupport
+  }
+}
 
 /**
  * Check if a feature should be enabled regardless of USER_TYPE.

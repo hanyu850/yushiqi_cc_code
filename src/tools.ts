@@ -139,6 +139,7 @@ import type { ToolPermissionContext } from './Tool.js'
 import { getDenyRuleForTool } from './utils/permissions/permissions.js'
 import { hasEmbeddedSearchTools } from './utils/embeddedTools.js'
 import { isEnvTruthy } from './utils/envUtils.js'
+import { CCB_SIMPLE_PROMPT } from './constants/product.js'
 import { isPowerShellToolEnabled } from './utils/shell/shellToolUtils.js'
 import { isAgentSwarmsEnabled } from './utils/agentSwarmsEnabled.js'
 import { isWorktreeModeEnabled } from './utils/worktreeModeEnabled.js'
@@ -274,7 +275,8 @@ export function filterToolsByDenyRules<
 export const getTools = (permissionContext: ToolPermissionContext): Tools => {
   // CCB slim mode: core tools only — cuts ~12000 tokens from each request
   // Essential for non-caching models (千问 etc.) that re-send tools every turn
-  if (process.env.CCB_SIMPLE_PROMPT === '1') {
+  // Auto-detected via CCB_SIMPLE_PROMPT (set by product.ts based on provider)
+  if (CCB_SIMPLE_PROMPT) {
     const slimTools: Tool[] = [
       BashTool, FileReadTool, FileEditTool, FileWriteTool,
       GlobTool, GrepTool,
