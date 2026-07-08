@@ -5,7 +5,7 @@
  * internal task management, log access, and export functionality.
  * In the reverse-engineered build, these are informational stubs.
  */
-import { print } from '../print.js'
+const print = (msg: string, _opts?: any) => console.log(msg)
 
 export async function logHandler(
   logId: string | number | undefined,

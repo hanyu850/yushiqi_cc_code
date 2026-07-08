@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { getProjectRoot } from '../bootstrap/state.js'
 import { logForDebugging } from '../utils/debug.js'
-import { print } from './print.js'
+const print = (msg: string, _opts?: any) => console.log(msg)
 
 interface RollbackOptions {
   list?: boolean

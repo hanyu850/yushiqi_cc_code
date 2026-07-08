@@ -1,5 +1,21 @@
 export const PRODUCT_URL = 'https://claude.com/claude-code'
 
+// CCB — Feature toggle / restriction control
+// Set CCB_UNLOCK_ALL=1 to enable all features regardless of USER_TYPE
+// Set CCB_SKIP_AUTH=1 to bypass OAuth login (API key direct mode)
+// Set CCB_NO_TELEMETRY=1 to disable analytics/Sentry/GrowthBook
+export const CCB_UNLOCK_ALL = process.env.CCB_UNLOCK_ALL === '1'
+export const CCB_SKIP_AUTH = process.env.CCB_SKIP_AUTH === '1' || CCB_UNLOCK_ALL
+export const CCB_NO_TELEMETRY = process.env.CCB_NO_TELEMETRY === '1' || CCB_UNLOCK_ALL
+
+/**
+ * Check if a feature should be enabled regardless of USER_TYPE.
+ * When CCB_UNLOCK_ALL=1, all ant-only features are available to everyone.
+ */
+export function isCcbFeatureUnlocked(): boolean {
+  return CCB_UNLOCK_ALL || process.env.USER_TYPE === 'ant'
+}
+
 // Claude Code Remote session URLs
 export const CLAUDE_AI_BASE_URL = 'https://claude.ai'
 export const CLAUDE_AI_STAGING_BASE_URL = 'https://claude-ai.staging.ant.dev'

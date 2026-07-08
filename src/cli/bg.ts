@@ -9,7 +9,8 @@
  * message and exit gracefully.
  */
 import { feature } from 'bun:bundle'
-import { print } from './print.js'
+
+const print = (msg: string, _opts?: any) => console.log(msg)
 
 export async function psHandler(args: string[]): Promise<void> {
   if (!feature('BG_SESSIONS')) {

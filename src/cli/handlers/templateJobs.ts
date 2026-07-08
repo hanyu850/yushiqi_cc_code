@@ -5,7 +5,7 @@
  * Feature-gated behind the TEMPLATES flag.
  */
 import { feature } from 'bun:bundle'
-import { print } from '../print.js'
+const print = (msg: string, _opts?: any) => console.log(msg)
 
 export async function templatesMain(args: string[]): Promise<void> {
   if (!feature('TEMPLATES')) {

@@ -5,7 +5,7 @@ import { feature } from 'bun:bundle'
 // This happens when running cli.tsx directly (not via `bun run dev` or built dist/).
 if (typeof globalThis.MACRO === 'undefined') {
   ;(globalThis as any).MACRO = {
-    VERSION: process.env.CLAUDE_CODE_VERSION || '2.1.159',
+    VERSION: process.env.CLAUDE_CODE_VERSION || '2.2.0',
     BUILD_TIME: new Date().toISOString(),
     FEEDBACK_CHANNEL: '',
     ISSUES_EXPLAINER: '',
@@ -13,6 +13,13 @@ if (typeof globalThis.MACRO === 'undefined') {
     PACKAGE_URL: '',
     VERSION_CHANGELOG: '',
   }
+}
+
+// CCB: Initialize feature config early, before any imports
+// Set USER_TYPE=ant when CCB_UNLOCK_ALL=1 to enable all features
+if (process.env.CCB_UNLOCK_ALL === '1') {
+  process.env.USER_TYPE = process.env.USER_TYPE || 'ant'
+  process.env.CCB_FEATURES_UNLOCKED = '1'
 }
 
 // Bugfix for corepack auto-pinning, which adds yarnpkg to peoples' package.jsons

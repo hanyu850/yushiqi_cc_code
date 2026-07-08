@@ -5,6 +5,7 @@ import { mkdir, stat } from 'fs/promises'
 import memoize from 'lodash-es/memoize.js'
 import { join } from 'path'
 import { CLAUDE_AI_PROFILE_SCOPE } from 'src/constants/oauth.js'
+import { CCB_SKIP_AUTH } from 'src/constants/product.js'
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
   logEvent,
@@ -98,6 +99,9 @@ function isManagedOAuthContext(): boolean {
 /** Whether we are supporting direct 1P auth. */
 // this code is closely related to getAuthTokenSource
 export function isAnthropicAuthEnabled(): boolean {
+  // CCB: Skip OAuth when API key is provided
+  if (CCB_SKIP_AUTH) return false
+
   // --bare: API-key-only, never OAuth.
   if (isBareMode()) return false
 

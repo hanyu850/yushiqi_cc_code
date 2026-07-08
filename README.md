@@ -92,7 +92,41 @@ bun run build
 
 > 支持所有 Anthropic API 兼容服务（如 OpenRouter、AWS Bedrock 代理等），只要接口兼容 Messages API 即可。
 
-## Feature Flags
+## CCB 配置开关 (v2.2.0+)
+
+所有功能限制通过环境变量控制，**设置后重新启动生效**：
+
+### 快速全解锁
+
+```bash
+CCB_UNLOCK_ALL=1 ccb
+```
+
+一键启用：全部 ant 内部功能 + 跳过登录 + 关闭遥测。
+
+### 独立开关
+
+| 环境变量 | 默认 | 说明 |
+|----------|------|------|
+| `CCB_UNLOCK_ALL=1` | 关闭 | **总开关**，等同于下面三个全开 |
+| `CCB_SKIP_AUTH=1` | 关闭 | 跳过 OAuth 登录，直接用 API Key（兼容任何 Anthropic 兼容接口） |
+| `CCB_NO_TELEMETRY=1` | 关闭 | 禁用 Sentry/GrowthBook/遥测上报 |
+| `USER_TYPE=ant` | — | 设置后解锁所有内部功能（Bridge/Remote/Chrome MCP 等） |
+
+### 示例
+
+```bash
+# 只想跳过登录，保留其他功能
+CCB_SKIP_AUTH=1 ccb
+
+# 全部放开（等同于 CCB_UNLOCK_ALL=1）
+USER_TYPE=ant CCB_SKIP_AUTH=1 CCB_NO_TELEMETRY=1 ccb
+
+# API Key 直连模式（不需要 /login）
+ANTHROPIC_API_KEY=sk-ant-xxx CCB_SKIP_AUTH=1 ccb
+```
+
+### Feature Flags
 
 所有功能开关通过 `FEATURE_<FLAG_NAME>=1` 环境变量启用，例如：
 

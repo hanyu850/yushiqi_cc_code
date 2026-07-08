@@ -2,8 +2,15 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { getProjectRoot } from '../bootstrap/state.js'
 import { logForDebugging } from '../utils/debug.js'
-import { print } from './print.js'
 import { execSync } from 'child_process'
+
+// Lightweight print helper — avoids importing the full CLI print module
+function print(msg: string, opts?: { variant?: string }): void {
+  const prefix = opts?.variant === 'error' ? '✗ ' :
+                 opts?.variant === 'success' ? '✓ ' :
+                 opts?.variant === 'info' ? 'ℹ ' : ''
+  console.log(prefix + msg)
+}
 
 /**
  * Bootstrap/setup a project for Claude Code.
