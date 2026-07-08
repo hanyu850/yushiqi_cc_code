@@ -4,9 +4,11 @@ export const PRODUCT_URL = 'https://claude.com/claude-code'
 // Set CCB_UNLOCK_ALL=1 to enable all features regardless of USER_TYPE
 // Set CCB_SKIP_AUTH=1 to bypass OAuth login (API key direct mode)
 // Set CCB_NO_TELEMETRY=1 to disable analytics/Sentry/GrowthBook
+// Set CCB_SIMPLE_PROMPT=1 to slash system prompt + tool count for non-caching models (千问 etc.)
 export const CCB_UNLOCK_ALL = process.env.CCB_UNLOCK_ALL === '1'
 export const CCB_SKIP_AUTH = process.env.CCB_SKIP_AUTH === '1' || CCB_UNLOCK_ALL
 export const CCB_NO_TELEMETRY = process.env.CCB_NO_TELEMETRY === '1' || CCB_UNLOCK_ALL
+export const CCB_SIMPLE_PROMPT = process.env.CCB_SIMPLE_PROMPT === '1'
 
 /**
  * Check if a feature should be enabled regardless of USER_TYPE.

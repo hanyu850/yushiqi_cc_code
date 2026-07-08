@@ -61,6 +61,7 @@ import { loadMemoryPrompt } from '../memdir/memdir.js'
 import { isUndercover } from '../utils/undercover.js'
 import { getAntModelOverrideConfig } from '../utils/model/antModels.js'
 import { isMcpInstructionsDeltaEnabled } from '../utils/mcpInstructionsDelta.js'
+import { CCB_SIMPLE_PROMPT } from './product.js'
 
 // Dead code elimination: conditional imports for feature-gated modules
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -198,6 +199,14 @@ function getSimpleSystemSection(): string {
 }
 
 function getSimpleDoingTasksSection(): string {
+  // CCB slim mode: cut 900-token anthro-verbose section to 3 lines
+  if (CCB_SIMPLE_PROMPT) {
+    return `# Doing tasks
+- Focus on the user's request. Don't add features or refactors beyond what was asked.
+- Read files before modifying them. Prefer editing existing files over creating new ones.
+- Report outcomes honestly. If you can't verify something works, say so.`
+  }
+
   const codeStyleSubitems = [
     `Don't add features, refactor code, or make "improvements" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.`,
     `Don't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.`,
@@ -254,6 +263,12 @@ function getSimpleDoingTasksSection(): string {
 }
 
 function getActionsSection(): string {
+  if (CCB_SIMPLE_PROMPT) {
+    return `# Actions
+- Take care with destructive or irreversible actions. Ask the user before force-pushing, deleting branches, or modifying shared infrastructure.
+- When stuck, diagnose the root cause rather than bypassing safeguards.`
+  }
+
   return `# Executing actions with care
 
 Carefully consider the reversibility and blast radius of actions. Generally you can freely take local, reversible actions like editing files or running tests. But for actions that are hard to reverse, affect shared systems beyond your local environment, or could otherwise be risky or destructive, check with the user before proceeding. The cost of pausing to confirm is low, while the cost of an unwanted action (lost work, unintended messages sent, deleted branches) can be very high. For actions like these, consider the context, the action, and user instructions, and by default transparently communicate the action and ask for confirmation before proceeding. This default can be changed by user instructions - if explicitly asked to operate more autonomously, then you may proceed without confirmation, but still attend to the risks and consequences when taking actions. A user approving an action (like a git push) once does NOT mean that they approve it in all contexts, so unless actions are authorized in advance in durable instructions like CLAUDE.md files, always confirm first. Authorization stands for the scope specified, not beyond. Match the scope of your actions to what was actually requested.
@@ -268,6 +283,12 @@ When you encounter an obstacle, do not use destructive actions as a shortcut to 
 }
 
 function getUsingYourToolsSection(enabledTools: Set<string>): string {
+  if (CCB_SIMPLE_PROMPT) {
+    return `# Tools
+- Use dedicated tools (Read, Edit, Write, Grep, Glob) instead of shell commands.
+- Call independent tools in parallel for efficiency.`
+  }
+
   const taskToolName = [TASK_CREATE_TOOL_NAME, TODO_WRITE_TOOL_NAME].find(n =>
     enabledTools.has(n),
   )
@@ -402,6 +423,10 @@ function getSessionSpecificGuidanceSection(
 
 // @[MODEL LAUNCH]: Remove this section when we launch numbat.
 function getOutputEfficiencySection(): string {
+  if (CCB_SIMPLE_PROMPT) {
+    return `# Output
+Be concise. Lead with the answer, not the reasoning. Skip filler and preamble. One sentence is better than three.`
+  }
   if (process.env.USER_TYPE === 'ant') {
     return `# Communicating with the user
 When sending user-facing text, you're writing for a person, not logging to a console. Assume users can't see most tool calls or thinking - only your text output. Before your first tool call, briefly state what you're about to do. While working, give short updates at key moments: when you find something load-bearing (a bug, a root cause), when changing direction, when you've made progress without an update.
@@ -429,6 +454,12 @@ If you can say it in one sentence, don't use three. Prefer short, direct sentenc
 }
 
 function getSimpleToneAndStyleSection(): string {
+  if (CCB_SIMPLE_PROMPT) {
+    return `# Style
+- Use Github-flavored markdown. Avoid emojis unless asked.
+- Write in complete sentences. Don't over-explain obvious actions.`
+  }
+
   const items = [
     `Only use emojis if the user explicitly requests it. Avoid using emojis in all communication unless asked.`,
     process.env.USER_TYPE === 'ant'
@@ -452,6 +483,25 @@ export async function getSystemPrompt(
     return [
       `You are Claude Code, Anthropic's official CLI for Claude.\n\nCWD: ${getCwd()}\nDate: ${getSessionStartDate()}`,
     ]
+  }
+
+  // CCB slim mode: minimal system prompt for non-caching models (千问 etc.)
+  // Saves ~3000 tokens/turn by cutting verbose instructions
+  if (CCB_SIMPLE_PROMPT) {
+    const cwd = getCwd()
+    const settings = getInitialSettings()
+    return [
+      `You are Claude Code, Anthropic's official CLI for Claude. You are an interactive coding assistant.\n\nCWD: ${cwd}\nDate: ${getSessionStartDate()}`,
+      `# Rules
+- Use dedicated tools (Read/Edit/Write/Grep/Glob) instead of Bash when possible.
+- Call independent tools in parallel.
+- Be concise. Lead with the answer, not the reasoning.
+- Read files before editing them. Prefer editing existing files.
+- Ask before destructive actions (force-push, delete branches, rm -rf).
+- Report outcomes honestly. Say so if you can't verify something works.`,
+      await computeSimpleEnvInfo(model, additionalWorkingDirectories),
+      getLanguageSection(settings.language),
+    ].filter((s): s is string => s !== null && s !== undefined)
   }
 
   const cwd = getCwd()

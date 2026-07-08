@@ -272,6 +272,19 @@ export function filterToolsByDenyRules<
 }
 
 export const getTools = (permissionContext: ToolPermissionContext): Tools => {
+  // CCB slim mode: core tools only — cuts ~12000 tokens from each request
+  // Essential for non-caching models (千问 etc.) that re-send tools every turn
+  if (process.env.CCB_SIMPLE_PROMPT === '1') {
+    const slimTools: Tool[] = [
+      BashTool, FileReadTool, FileEditTool, FileWriteTool,
+      GlobTool, GrepTool,
+      TodoWriteTool, TaskCreateTool, TaskStopTool,
+      WebFetchTool,
+      ...(REPLTool && isReplModeEnabled() ? [REPLTool] : []),
+    ]
+    return filterToolsByDenyRules(slimTools, permissionContext)
+  }
+
   // Simple mode: only Bash, Read, and Edit tools
   if (isEnvTruthy(process.env.CLAUDE_CODE_SIMPLE)) {
     // --bare + REPL mode: REPL wraps Bash/Read/Edit/etc inside the VM, so

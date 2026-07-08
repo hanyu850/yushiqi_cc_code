@@ -417,6 +417,10 @@ export function buildSearchingPastContextSection(autoMemDir: string): string[] {
  * Returns null when auto memory is disabled.
  */
 export async function loadMemoryPrompt(): Promise<string | null> {
+  // CCB slim mode: skip memory loading to save tokens
+  // CLAUDE.md is still loaded separately via the file system, not here
+  if (process.env.CCB_SIMPLE_PROMPT === '1') return null
+
   const autoEnabled = isAutoMemoryEnabled()
 
   const skipIndex = getFeatureValue_CACHED_MAY_BE_STALE(
